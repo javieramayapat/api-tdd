@@ -3,11 +3,26 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PostRequest;
 use App\Post;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+    /* 
+        Refactorización de mi código sobre el método store.
+        Pasos:
+        1- Creo propiedad post
+        2. recibo la entidad Post mediante el constructor
+        3- Asigno la entidad Post a la propiedad posts
+    */
+    protected $posts;
+
+    public function __construct(Post $post)
+    {   
+        $this->posts = $post;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -24,9 +39,9 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(PostRequest $request)
     {
-        $post = Post::create($request->all());
+        $post = $this->posts->create($request->all());
 
         return response()->json($post, 201);
     }
