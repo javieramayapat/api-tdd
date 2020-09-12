@@ -62,7 +62,7 @@ class PostControllerTest extends TestCase
         */
 
         $response->assertStatus(422)
-                ->assertJsonValidationErrors('title');
+            ->assertJsonValidationErrors('title');
     }
 
     /* 
@@ -80,16 +80,16 @@ class PostControllerTest extends TestCase
 
     */
 
-    
+
     public function test_show()
     {
         $post = factory(Post::class)->create();
 
-        $response = $this->json('GET',"api/posts/$post->id");
+        $response = $this->json('GET', "api/posts/$post->id");
 
-        $response->assertJsonStructure(['id','title','created_at','updated_at'])
-                ->assertJson(['title' => $post->title])
-                ->assertStatus(200);
+        $response->assertJsonStructure(['id', 'title', 'created_at', 'updated_at'])
+            ->assertJson(['title' => $post->title])
+            ->assertStatus(200);
     }
 
     /* 
@@ -99,7 +99,7 @@ class PostControllerTest extends TestCase
     public function test_404_show()
     {
         // al no usar variables podemos usar comillas sencillas
-        $response = $this->json('GET','api/posts/1000');
+        $response = $this->json('GET', 'api/posts/1000');
 
         $response->assertStatus(404);
     }
@@ -110,26 +110,27 @@ class PostControllerTest extends TestCase
         3.Verificar estrucutra de json, valor-key y  status ok.
         4.Verificar el valor y la key en la base de datos.
     */
-    public function test_update(){
+    public function test_update()
+    {
 
         // Llamada al manejador de errores para mostrar de manera más concisa la falla.
         // $this->withoutExceptionHandling();
-        
+
         $post = factory(Post::class)->create();
 
-        $response = $this->json('PUT',"api/posts/$post->id",[
+        $response = $this->json('PUT', "api/posts/$post->id", [
             'title' => 'nuevo'
         ]);
 
-        $response->assertJsonStructure(['id','title','created_at','updated_at'])
-                 ->assertJson(['title' => 'nuevo'])
-                 ->assertStatus(200);
+        $response->assertJsonStructure(['id', 'title', 'created_at', 'updated_at'])
+            ->assertJson(['title' => 'nuevo'])
+            ->assertStatus(200);
 
         $this->assertDatabaseHas('posts', ['title' => 'nuevo']);
     }
 
 
-     /* 
+    /* 
         1.Crear un post con factory.
         2.Configuro la solicitud para eliminar el post con el ID 
           pasado por la ruta de eliminación.
@@ -138,20 +139,33 @@ class PostControllerTest extends TestCase
 
         Nota:$response->assertSee(null) ->Afirma que el string dado esta contenido en la respuesta.
     */
-    public function test_delete(){
+    public function test_delete()
+    {
 
         // Llamada al manejador de errores para mostrar de manera más concisa la falla.
         // $this->withoutExceptionHandling();
-        
+
         $post = factory(Post::class)->create();
 
-        $response = $this->json('DELETE',"api/posts/$post->id");
+        $response = $this->json('DELETE', "api/posts/$post->id");
 
         $response->assertSee(null)
-                 ->assertStatus(204); //Sin contenido..
+            ->assertStatus(204); //Sin contenido..
 
-        $this->assertDatabaseMissing('posts',['id' => $post->id]);
-    } 
+        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+    }
 
+
+    public function test_index()
+    {
+        factory(Post::class, 5)->create();
+
+        $response = $this->json('GET', 'api/posts');
+
+        $response->assertJsonStructure([
+            'data' => [
+                '*' => ['id', 'title', 'created_at', 'updated_at']
+            ]
+        ])->assertStatus(200);
+    }
 }
-
