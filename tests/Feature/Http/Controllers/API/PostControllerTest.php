@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -62,6 +63,45 @@ class PostControllerTest extends TestCase
 
         $response->assertStatus(422)
                 ->assertJsonValidationErrors('title');
+    }
+
+    /* 
+        $response: Equivale a la acción que el usuario esta haciendo a una uri de nuestra api,
+                   por ellos mediante las afirmaciones hacemos Debugging Responses 
+                   para que se que se cumpla la logica de negocio esperada.
+
+        1.Debo crear un post mediante factory
+        2.valido la ruta de consulta de ese post obteniendo el id directamente del post de prueba
+        3.verifico que tenga una estructura json valida
+        4. Varifico que tenga un json con el titulo de respuesta
+        5.verifico que me de un status 200 ok
+
+        ->assertJson(): Afirma que en la respuesta contenga un elemento de la estructura json dada.
+
+    */
+
+    
+    public function test_show()
+    {
+        $post = factory(Post::class)->create();
+
+        $response = $this->json('GET',"api/posts/$post->id");
+
+        $response->assertJsonStructure(['id','title','created_at','updated_at'])
+                ->assertJson(['title' => $post->title])
+                ->assertStatus(200);
+    }
+
+    /* 
+        Creación de prueba para un error 404, caso en el que el post no exista
+    */
+
+    public function test_404_show()
+    {
+        // al no usar variables podemos usar comillas sencillas
+        $response = $this->json('GET','api/posts/1000');
+
+        $response->assertStatus(404);
     }
 
 }

@@ -54,7 +54,8 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        // Retorno el contenido consultado en el método show
+        return response()->json($post);
     }
 
     /**

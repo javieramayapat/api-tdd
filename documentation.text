@@ -1,0 +1,5 @@
+Post Controller (Tests\Feature\Http\Controllers\Api\PostController)
+ [x] Store
+ [x] Validate title
+ [x] Show
+
