@@ -106,9 +106,9 @@ class PostControllerTest extends TestCase
 
     /* 
         1.Crear un post con factory.
-        2.Configuro la solicitud para modificar el recurso medinate put y su ruta respectiva.
+        2.Configuro la solicitud para modificar el recurso mediante PUT y su ruta respectiva.
         3.Verificar estrucutra de json, valor-key y  status ok.
-        4.verificar el valor y la key en la base de datos.
+        4.Verificar el valor y la key en la base de datos.
     */
     public function test_update(){
 
@@ -127,6 +127,31 @@ class PostControllerTest extends TestCase
 
         $this->assertDatabaseHas('posts', ['title' => 'nuevo']);
     }
+
+
+     /* 
+        1.Crear un post con factory.
+        2.Configuro la solicitud para eliminar el post con el ID 
+          pasado por la ruta de eliminación.
+        3.Verificar que la respuesta este null y el status sea 204
+        4.verificar que el id no se encuentra en la base de datos.
+
+        Nota:$response->assertSee(null) ->Afirma que el string dado esta contenido en la respuesta.
+    */
+    public function test_delete(){
+
+        // Llamada al manejador de errores para mostrar de manera más concisa la falla.
+        // $this->withoutExceptionHandling();
+        
+        $post = factory(Post::class)->create();
+
+        $response = $this->json('DELETE',"api/posts/$post->id");
+
+        $response->assertSee(null)
+                 ->assertStatus(204); //Sin contenido..
+
+        $this->assertDatabaseMissing('posts',['id' => $post->id]);
+    } 
 
 }
 

@@ -19,7 +19,7 @@ class PostController extends Controller
     protected $posts;
 
     public function __construct(Post $post)
-    {   
+    {
         $this->posts = $post;
     }
 
@@ -80,6 +80,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+
+        return response()->json(null, 204);
     }
 }
