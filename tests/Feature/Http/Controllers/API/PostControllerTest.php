@@ -18,7 +18,7 @@ class PostControllerTest extends TestCase
     public function test_store()
     {
         // Llamada al manejador de errores para mostrar de manera más concisa la falla.
-        $this->withExceptionHandling();
+        $this->withoutExceptionHandling();
         /* 
             Simulación de una aplicación esta llegando mediante la ruta
             /api/posts y esta intentando guardar los datos mediante el
@@ -102,6 +102,30 @@ class PostControllerTest extends TestCase
         $response = $this->json('GET','api/posts/1000');
 
         $response->assertStatus(404);
+    }
+
+    /* 
+        1.Crear un post con factory.
+        2.Configuro la solicitud para modificar el recurso medinate put y su ruta respectiva.
+        3.Verificar estrucutra de json, valor-key y  status ok.
+        4.verificar el valor y la key en la base de datos.
+    */
+    public function test_update(){
+
+        // Llamada al manejador de errores para mostrar de manera más concisa la falla.
+        // $this->withoutExceptionHandling();
+        
+        $post = factory(Post::class)->create();
+
+        $response = $this->json('PUT',"api/posts/$post->id",[
+            'title' => 'nuevo'
+        ]);
+
+        $response->assertJsonStructure(['id','title','created_at','updated_at'])
+                 ->assertJson(['title' => 'nuevo'])
+                 ->assertStatus(200);
+
+        $this->assertDatabaseHas('posts', ['title' => 'nuevo']);
     }
 
 }
