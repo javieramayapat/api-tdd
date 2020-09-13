@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Post;
+use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -18,13 +19,23 @@ class PostControllerTest extends TestCase
     public function test_store()
     {
         // Llamada al manejador de errores para mostrar de manera más concisa la falla.
-        $this->withoutExceptionHandling();
+        // $this->withoutExceptionHandling();
         /* 
             Simulación de una aplicación esta llegando mediante la ruta
             /api/posts y esta intentando guardar los datos mediante el
             método post.
         */
-        $response = $this->json('POST', '/api/posts', [
+
+        $user = factory(User::class)->create();
+
+        /* 
+            Para evitar fallos al implementar los middleware en las rutas
+            se crea un usuarios el cual va a actuar como logueado en la
+            aplicación, el parametro api indicará que se sera una 
+            autenticación por token del usuario.
+        */
+
+        $response = $this->actingAs($user, 'api')->json('POST', '/api/posts', [
             'title' => 'El post de prueba'
         ]);
 
@@ -49,10 +60,10 @@ class PostControllerTest extends TestCase
 
     public function test_validate_title()
     {
-        /* 
-         */
+        $user = factory(User::class)->create();
+
         // intento de guardar un post sin titulo
-        $response = $this->json('POST', 'api/posts', [
+        $response = $this->actingAs($user, 'api')->json('POST', 'api/posts', [
             'title' => ''
         ]);
 
@@ -84,8 +95,9 @@ class PostControllerTest extends TestCase
     public function test_show()
     {
         $post = factory(Post::class)->create();
+        $user = factory(User::class)->create();
 
-        $response = $this->json('GET', "api/posts/$post->id");
+        $response = $this->actingAs($user, 'api')->json('GET', "api/posts/$post->id");
 
         $response->assertJsonStructure(['id', 'title', 'created_at', 'updated_at'])
             ->assertJson(['title' => $post->title])
@@ -97,9 +109,11 @@ class PostControllerTest extends TestCase
     */
 
     public function test_404_show()
-    {
+    {   
+        $user = factory(User::class)->create();
+
         // al no usar variables podemos usar comillas sencillas
-        $response = $this->json('GET', 'api/posts/1000');
+        $response = $this->actingAs($user, 'api')->json('GET', 'api/posts/1000');
 
         $response->assertStatus(404);
     }
@@ -117,8 +131,9 @@ class PostControllerTest extends TestCase
         // $this->withoutExceptionHandling();
 
         $post = factory(Post::class)->create();
+        $user = factory(User::class)->create();
 
-        $response = $this->json('PUT', "api/posts/$post->id", [
+        $response = $this->actingAs($user, 'api')->json('PUT', "api/posts/$post->id", [
             'title' => 'nuevo'
         ]);
 
@@ -146,8 +161,9 @@ class PostControllerTest extends TestCase
         // $this->withoutExceptionHandling();
 
         $post = factory(Post::class)->create();
+        $user = factory(User::class)->create();
 
-        $response = $this->json('DELETE', "api/posts/$post->id");
+        $response = $this->actingAs($user, 'api')->json('DELETE', "api/posts/$post->id");
 
         $response->assertSee(null)
             ->assertStatus(204); //Sin contenido..
@@ -159,13 +175,24 @@ class PostControllerTest extends TestCase
     public function test_index()
     {
         factory(Post::class, 5)->create();
+        $user = factory(User::class)->create();
 
-        $response = $this->json('GET', 'api/posts');
+        $response = $this->actingAs($user, 'api')->json('GET', 'api/posts');
 
         $response->assertJsonStructure([
             'data' => [
                 '*' => ['id', 'title', 'created_at', 'updated_at']
             ]
         ])->assertStatus(200);
+    }
+
+    public function test_guest(){
+
+        // 401-> No estamos autorizados para el acceso
+        $this->json('GET','api/posts')->assertStatus(401);
+        $this->json('POST','api/posts')->assertStatus(401);
+        $this->json('GET','api/posts/1000')->assertStatus(401);
+        $this->json('PUT','api/posts/1000')->assertStatus(401);
+        $this->json('DELETE','api/posts/1000')->assertStatus(401);
     }
 }
